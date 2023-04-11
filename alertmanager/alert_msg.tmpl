@@ -1,0 +1,16 @@
+{{ define "__text_alert_list_custom" }}{{ range . }}Labels:
+{{ range .Labels.SortedPairs }} - {{ .Name }} = {{ .Value }}
+{{ end }}Annotations:
+{{ range .Annotations.SortedPairs }} - {{ .Name }} = {{ .Value }}
+{{ end }}{{ end }}{{ end }}
+
+{{ define "telegram.alert_msg.message" }}
+{{ if gt (len .Alerts.Firing) 0 }}
+Alerts Firing:
+{{ template "__text_alert_list_custom" .Alerts.Firing }}
+{{ end }}
+{{ if gt (len .Alerts.Resolved) 0 }}
+Alerts Resolved:
+{{ template "__text_alert_list_custom" .Alerts.Resolved }}
+{{ end }}
+{{ end }}

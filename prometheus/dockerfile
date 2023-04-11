@@ -1,0 +1,3 @@
+FROM prom/prometheus:v2.38.0
+COPY ./prometheus.yml /prometheus.yml
+COPY ./alert_rules.yml /alert_rules.yml

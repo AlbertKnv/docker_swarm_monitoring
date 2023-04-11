@@ -1,0 +1,82 @@
+version: "3.8"
+
+services:
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.45.0
+    networks:
+      - monitoring
+    command:
+    - "--docker_only=true"
+    - "--logtostderr"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    deploy:
+      mode: global
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:v1.4.0
+    networks:
+      - monitoring
+    volumes:
+      - /:/rootfs:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    command:
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc|run|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
+    deploy:
+      mode: global
+
+  prometheus:
+    image: dsm_prometheus:2.38.0
+    networks:
+      - monitoring
+    volumes:
+      - prometheus:/prometheus
+    command:
+      - '--config.file=/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+    deploy:
+      placement:
+        constraints:
+          - node.role==manager
+
+  alertmanager:
+    image: dsm_prometheus/alertmanager:0.25.0
+    networks:
+      - monitoring
+    command:
+      - '--config.file=/alertmanager.yml'
+    deploy:
+      placement:
+        constraints:
+          - node.role==manager
+
+  grafana:
+    image: grafana/grafana:9.2.3
+    networks:
+      - monitoring
+    ports:
+      - target: 3000
+        published: 3000
+    volumes:
+      - grafana:/var/lib/grafana
+    deploy:
+      placement:
+        constraints:
+          - node.role==manager
+
+volumes:
+  prometheus:
+    external: true
+  grafana:
+    external: true
+
+networks:
+  monitoring:
+    external: true

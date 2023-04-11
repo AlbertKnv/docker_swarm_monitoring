@@ -1,0 +1,27 @@
+global:
+  scrape_interval:     30s
+  evaluation_interval: 30s
+
+rule_files:
+  - /alert_rules.yml
+
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - alertmanager:9093
+
+scrape_configs:
+  - job_name: 'cadvisor'
+    dns_sd_configs:
+    - names:
+      - 'tasks.cadvisor'
+      type: 'A'
+      port: 8080
+
+  - job_name: 'node_exporter'
+    dns_sd_configs:
+    - names:
+      - 'tasks.node_exporter'
+      type: 'A'
+      port: 9100
